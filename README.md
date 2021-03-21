@@ -1,8 +1,8 @@
+# Project 1: Navigation
+
 This is a repo for the first project in [Deep Reinforcement Learning Udacity nanodegree](https://www.udacity.com/course/deep-reinforcement-learning-nanodegree--nd893).
 
-The below description are from the nanodegree's [official github repo](https://github.com/udacity/deep-reinforcement-learning).
-
-# Project 1: Navigation
+The introduction and getting started parts are from the nanodegree's [official github repo](https://github.com/udacity/deep-reinforcement-learning).
 
 ### Introduction
 
@@ -34,4 +34,4 @@ The task is episodic, and in order to solve the environment, your agent must get
 
 ### Instructions
 
-The agent can be trained using the monitor function in Navigation.py. If you are interested in the fully trained agent, you can load the pre-trained weights by using the load() method of the agent and setting its mode to eval.
+The agent can be trained using the monitor function in Navigation.py. If you are interested in the fully trained agent, you can load the pre-trained weights by using the load(path="checkpoints/") method of the agent and setting its mode to eval.
