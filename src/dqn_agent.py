@@ -1,8 +1,8 @@
 import numpy as np
 import random
 
-from model import QNetwork
-from replay_buffer import ReplayBuffer, PrioritizedBuffer
+from src.model import QNetwork
+from src.replay_buffer import ReplayBuffer, PrioritizedBuffer
 
 import torch
 import torch.nn.functional as F
