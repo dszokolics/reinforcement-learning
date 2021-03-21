@@ -8,6 +8,8 @@ The solution uses a deep reinforcement learning agent to solve the environment. 
 - [Dueling DQN](https://arxiv.org/abs/1511.06581)
 - [Prioritized Experience Replay](https://arxiv.org/abs/1511.05952)
 
+The algorithm is based on the RL framework provided by the nanodegree during the moon lander exercise.
+
 **DQN**
 
 Based on the original DQN setup, the agent uses a separate target network, and replays its experiences to learn from. During a learning step, it uses a sample from the experience buffer to adjust the local network's weights. The target network is updated in every learning step using a soft max update and the local network's weights.
