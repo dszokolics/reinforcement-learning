@@ -51,8 +51,9 @@ class ReplayBuffer:
 
     
 class PrioritizedBuffer:
+    """Fixed size replay buffer with sampling prioritized by the error of the experiences."""
     
-    def __init__(self, action_size, buffer_size, batch_size, seed, a=0.01, e=1):
+    def __init__(self, action_size, buffer_size, batch_size, seed, a=0.005, e=1):
         self.action_size = action_size
         self.memory = deque(maxlen=buffer_size)  
         self.batch_size = batch_size
@@ -68,7 +69,7 @@ class PrioritizedBuffer:
         self.memory.append(e)
     
     def sample(self):
-        """Randomly sample a batch of experiences from memory."""
+        """Sample a batch of experiences from memory. Each experience is weighted according to its error."""
         self.experience_indices = np.random.choice(range(len(self.memory)), size=self.batch_size, replace=False, p=self.get_weights())
         
         experiences = [item for index, item in enumerate(self.memory) if index in self.experience_indices]
@@ -82,10 +83,12 @@ class PrioritizedBuffer:
         return (states, actions, rewards, next_states, dones)
         
     def get_weights(self):
+        """Turn model errors into sampling weights."""
         weights = (np.abs(np.array([e.error for e in self.memory if e is not None])) + self.a) ** self.e
         return weights / weights.sum()
     
     def update_errors(self, errors):
+        """Update the errors of the previously sampled experiences."""
         for index, error in zip(self.experience_indices, errors):
             state, action, reward, next_state, done, _ = self.memory[index]
             self.memory[index] = self.experience(state, action, reward, next_state, done, error.item())

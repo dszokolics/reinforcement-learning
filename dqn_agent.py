@@ -20,7 +20,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Agent():
     """Interacts with and learns from the environment."""
 
-    def __init__(self, state_size, action_size, seed):
+    def __init__(self, state_size, action_size, seed, mode="train"):
         """Initialize an Agent object.
         
         Params
@@ -28,6 +28,7 @@ class Agent():
             state_size (int): dimension of each state
             action_size (int): dimension of each action
             seed (int): random seed
+            mode (str): if eval, the agent will not learn and collect experiences
         """
         self.state_size = state_size
         self.action_size = action_size
@@ -42,21 +43,27 @@ class Agent():
         self.memory = PrioritizedBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
+        # Caches the expected action value of the last act
+        self.last_action_value = None
+        
+        self.mode = self.set_mode(mode)
     
     def step(self, state, action, reward, next_state, done):
         
-        error = self.calculate_error_eval(state, action, reward, next_state, done)
+        if self.mode == "train":
         
-        # Save experience in replay memory
-        self.memory.add(state, action, reward, next_state, done, error)
-        
-        # Learn every UPDATE_EVERY time steps.
-        self.t_step = (self.t_step + 1) % UPDATE_EVERY
-        if self.t_step == 0:
-            # If enough samples are available in memory, get random subset and learn
-            if len(self.memory) > BATCH_SIZE:
-                experiences = self.memory.sample()
-                self.learn(experiences, GAMMA)
+            error = self.calculate_error_eval(state, action, reward, next_state, done)
+
+            # Save experience in replay memory
+            self.memory.add(state, action, reward, next_state, done, error)
+
+            # Learn every UPDATE_EVERY time steps.
+            self.t_step = (self.t_step + 1) % UPDATE_EVERY
+            if self.t_step == 0:
+                # If enough samples are available in memory, get random subset and learn
+                if len(self.memory) > BATCH_SIZE:
+                    experiences = self.memory.sample()
+                    self.learn(experiences, GAMMA)
 
     def act(self, state, eps=0.):
         """Returns actions for given state as per current policy.
@@ -66,6 +73,9 @@ class Agent():
             state (array_like): current state
             eps (float): epsilon, for epsilon-greedy action selection
         """
+        if self.mode == "train":
+            eps = 0
+
         state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         self.qnetwork_local.eval()
         with torch.no_grad():
@@ -74,9 +84,13 @@ class Agent():
 
         # Epsilon-greedy action selection
         if random.random() > eps:
-            return np.argmax(action_values.cpu().data.numpy())
+            action = np.argmax(action_values.cpu().data.numpy())
         else:
-            return random.choice(np.arange(self.action_size))
+            action = random.choice(np.arange(self.action_size))
+
+        self.last_action_value = action_values[0][action].item()
+        
+        return action
 
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.
@@ -123,20 +137,32 @@ class Agent():
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
             
     def calculate_error_eval(self, state, action, reward, next_state, done):
-        self.qnetwork_local.eval()
+        """Calculates the error for a given step."""
         self.qnetwork_target.eval()
         
-        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         next_state = torch.from_numpy(next_state).float().unsqueeze(0).to(device)
         
         with torch.no_grad():
-            predicted_value = self.qnetwork_local(state)[0][action]
             target = self.qnetwork_target(next_state).max()
 
             target_value = reward + GAMMA*target*(1-done)
-            error = (target_value - predicted_value).item()
+            error = (target_value - self.last_action_value).item()
         
-        self.qnetwork_local.train()
         self.qnetwork_target.train()
         
         return error
+
+    def save(self, path=""):
+        torch.save(self.qnetwork_local.state_dict(), path+"checkpoint_local.pth")
+        torch.save(self.qnetwork_target.state_dict(), path+"checkpoint_target.pth")
+
+    def load(self, path=""):
+        self.qnetwork_local.load_state_dict(torch.load(path+"checkpoint_local.pth"))
+        self.qnetwork_target.load_state_dict(torch.load(path+"checkpoint_target.pth"))
+        
+    def set_mode(self, mode):
+        if mode not in {"train", "eval"}:
+            raise ValueError("mode must be one of [train, eval]")
+            
+        self.mode = mode
+    
