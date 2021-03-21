@@ -73,7 +73,7 @@ class Agent():
             state (array_like): current state
             eps (float): epsilon, for epsilon-greedy action selection
         """
-        if self.mode == "train":
+        if self.mode == "eval":
             eps = 0
 
         state = torch.from_numpy(state).float().unsqueeze(0).to(device)
