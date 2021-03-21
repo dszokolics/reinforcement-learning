@@ -1,6 +1,6 @@
-This is a repo for the first project in [Deep Reinforcement Learning Udacity nanodegree] (https://www.udacity.com/course/deep-reinforcement-learning-nanodegree--nd893).
+This is a repo for the first project in [Deep Reinforcement Learning Udacity nanodegree](https://www.udacity.com/course/deep-reinforcement-learning-nanodegree--nd893).
 
-The below description are from the nanodegree's [official github repo] (https://github.com/udacity/deep-reinforcement-learning).
+The below description are from the nanodegree's [official github repo](https://github.com/udacity/deep-reinforcement-learning).
 
 # Project 1: Navigation
 
