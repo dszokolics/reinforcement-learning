@@ -1,14 +1,12 @@
-This is a repo for the first project in [https://www.udacity.com/course/deep-reinforcement-learning-nanodegree--nd893] (Deep Reinforcement Learning Udacity nanodegree).
+This is a repo for the first project in [Deep Reinforcement Learning Udacity nanodegree] (https://www.udacity.com/course/deep-reinforcement-learning-nanodegree--nd893).
 
-The below description are from the nanodegree's [https://github.com/udacity/deep-reinforcement-learning] (official github repo).
+The below description are from the nanodegree's [official github repo] (https://github.com/udacity/deep-reinforcement-learning).
 
 # Project 1: Navigation
 
 ### Introduction
 
-For this project, you will train an agent to navigate (and collect bananas!) in a large, square world.  
-
-![Trained Agent][image1]
+For this project, you will train an agent to navigate (and collect bananas!) in a large, square world.
 
 A reward of +1 is provided for collecting a yellow banana, and a reward of -1 is provided for collecting a blue banana.  Thus, the goal of your agent is to collect as many yellow bananas as possible while avoiding blue bananas.  
 
