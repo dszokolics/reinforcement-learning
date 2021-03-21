@@ -46,7 +46,7 @@ class Agent():
         # Caches the expected action value of the last act
         self.last_action_value = None
         
-        self.mode = self.set_mode(mode)
+        self.set_mode(mode)
     
     def step(self, state, action, reward, next_state, done):
         
