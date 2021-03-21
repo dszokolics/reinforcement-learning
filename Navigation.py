@@ -24,6 +24,7 @@
 
 from unityagents import UnityEnvironment
 import numpy as np
+import sys
 
 # Next, we will start the environment!  **_Before running the code cell below_**, change the `file_name` parameter to match the location of the Unity environment that you downloaded.
 #
@@ -78,38 +79,6 @@ state_size = len(state)
 print('States have length:', state_size)
 # -
 
-# ### 3. Take Random Actions in the Environment
-#
-# In the next code cell, you will learn how to use the Python API to control the agent and receive feedback from the environment.
-#
-# Once this cell is executed, you will watch the agent's performance, if it selects an action (uniformly) at random with each time step.  A window should pop up that allows you to observe the agent, as it moves through the environment.  
-#
-# Of course, as part of the project, you'll have to change the code so that the agent is able to use its experience to gradually choose better actions when interacting with the environment!
-
-# +
-env_info = env.reset(train_mode=False)[brain_name] # reset the environment
-state = env_info.vector_observations[0]            # get the current state
-score = 0                                          # initialize the score
-while True:
-    action = np.random.randint(action_size)        # select an action
-    env_info = env.step(action)[brain_name]        # send the action to the environment
-    next_state = env_info.vector_observations[0]   # get the next state
-    reward = env_info.rewards[0]                   # get the reward
-    done = env_info.local_done[0]                  # see if episode has finished
-    score += reward                                # update the score
-    state = next_state                             # roll over the state to next time step
-    if done:                                       # exit loop if episode finished
-        break
-    
-print("Score: {}".format(score))
-# -
-
-# When finished, you can close the environment.
-
-# + active=""
-# env.close()
-# -
-
 # ### 4. It's Your Turn!
 #
 # Now it's your turn to train your own agent to solve the environment!  When training the environment, set `train_mode=True`, so that the line for resetting the environment looks like the following:
@@ -117,35 +86,59 @@ print("Score: {}".format(score))
 # env_info = env.reset(train_mode=True)[brain_name]
 # ```
 
-from dqn_agent import Agent
+from src.dqn_agent import Agent
 
 agent = Agent(state_size, action_size, 1)
-#env = UnityEnvironment(file_name="/data/Banana_Linux_NoVis/Banana.x86_64")
 
-scores = []
-for episode in range(1000):
-    env_info = env.reset(train_mode=True)[brain_name] # reset the environment
-    state = env_info.vector_observations[0]            # get the current state
-    score = 0                                          # initialize the score
-    while True:
-        action = agent.act(state, 1/(episode+1))
-        env_info = env.step(action)[brain_name]        # send the action to the environment
-        next_state = env_info.vector_observations[0]   # get the next state
-        reward = env_info.rewards[0]                   # get the reward
-        done = env_info.local_done[0]                  # see if episode has finished
-        agent.step(state, action, reward, next_state, done)
-        score += reward                                # update the score
-        state = next_state                             # roll over the state to next time step
-        if done:                                       # exit loop if episode finished
+
+def monitor(env, agent, n_episodes=1000):
+    """Run the agent and monitor its performance"""
+    scores = []
+    best_score = -np.inf
+    for episode in range(n_episodes):
+        env_info = env.reset(train_mode=True)[brain_name]
+        state = env_info.vector_observations[0]
+        score = 0
+
+        while True:
+            action = agent.act(state, 1/(episode+1))
+
+            env_info = env.step(action)[brain_name]
+            next_state = env_info.vector_observations[0]
+            reward = env_info.rewards[0]
+            done = env_info.local_done[0]
+
+            agent.step(state, action, reward, next_state, done)
+            score += reward
+            state = next_state
+
+            if done:
+                scores.append(score)
+                break
+                
+        if np.mean(scores[-100:]) > best_score:
+            best_score = np.mean(scores[-100:])
+
+        print("\rEpisode {} || Best average reward {}".format(episode, best_score), end="")
+        sys.stdout.flush()
+
+        if (episode+1) % 50 == 0:
+            print("\rEpisode: {}  Mean score: {}                          ".format(episode+1, np.mean(scores[-50:])))
+
+        if np.mean(scores[-100:]) > 13:
+            print("\rEnvironment solved in {} episodes!                   ".format(episode+1))
             break
+            
+    return scores
 
-    scores.append(score)
-    
-    if (episode+1) % 50 == 0:
-        print("Episode: {}  Mean score: {}".format(episode+1, np.mean(scores[-50:])))
-        
-    if np.mean(scores[-100:]) > 13:
-        print("Environment solved in {} episodes!".format(episode+1))
-        break
+
+agent.load("checkpoints/")
+agent.set_mode("eval")
+
+score = monitor(env, agent, 1000)
+
+import seaborn as sns
+
+sns.lineplot(x=range(len(score)), y=np.array(score))
 
 
